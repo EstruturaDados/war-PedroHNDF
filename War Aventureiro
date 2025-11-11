@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+// Estrutura que representa um territorio
+typedef struct {
+    char nome[50];
+    char cor[20];
+    int tropas;
+} Territorio;
+
+// Cadastra os territorios
+void cadastrarTerritorios(Territorio *t, int qtd) {
+    for (int i = 0; i < qtd; i++) {
+        printf("\n--- Territorio %d ---\n", i + 1);
+
+        printf("Nome: ");
+        fgets(t[i].nome, 50, stdin);
+        t[i].nome[strcspn(t[i].nome, "\n")] = '\0';
+
+        printf("Cor do exercito: ");
+        fgets(t[i].cor, 20, stdin);
+        t[i].cor[strcspn(t[i].cor, "\n")] = '\0';
+
+        printf("Numero de tropas: ");
+        scanf("%d", &t[i].tropas);
+        getchar(); // limpa o \n
+    }
+}
+
+// Mostra o estado atual do mapa
+void mostrarMapa(Territorio *t, int qtd) {
+    printf("\n===== MAPA ATUAL =====\n");
+    for (int i = 0; i < qtd; i++) {
+        printf("[%d] %s | Cor: %s | Tropas: %d\n",
+               i + 1,
+               t[i].nome,
+               t[i].cor,
+               t[i].tropas);
+    }
+}
+
+// Simula um ataque entre dois territorios
+void simularAtaque(Territorio *t, int atk, int def) {
+    printf("\n--- BATALHA ---\n");
+    printf("%s (Atacante) vs %s (Defensor)\n", t[atk].nome, t[def].nome);
+
+    // Rolagem dos dados
+    int dadoAtk = rand() % 6 + 1;
+    int dadoDef = rand() % 6 + 1;
+
+    printf("Dado Atacante: %d\n", dadoAtk);
+    printf("Dado Defensor: %d\n", dadoDef);
+
+    if (dadoAtk > dadoDef) {
+        printf("Atacante venceu a rodada!\n");
+        t[def].tropas--;
+
+        if (t[def].tropas <= 0) {
+            printf("Territorio %s foi conquistado!\n", t[def].nome);
+            // Atualiza cor e dá 1 tropa ao novo territorio
+            strcpy(t[def].cor, t[atk].cor);
+            t[def].tropas = 1;
+        }
+    } else {
+        printf("Defensor venceu ou houve empate. Nada muda.\n");
+    }
+}
+
+int main() {
+    srand(time(NULL));
+
+    int qtd = 5;
+    Territorio *territorios = (Territorio*) calloc(qtd, sizeof(Territorio));
+
+    printf("Cadastro dos territorios:\n");
+    cadastrarTerritorios(territorios, qtd);
+
+    char continuar = 's';
+
+    while (continuar == 's' || continuar == 'S') {
+        mostrarMapa(territorios, qtd);
+
+        int atk, def;
+
+        printf("\nEscolha o numero do territorio atacante: ");
+        scanf("%d", &atk);
+
+        printf("Escolha o numero do territorio defensor: ");
+        scanf("%d", &def);
+
+        getchar(); // limpa \n
+
+        atk--;
+        def--;
+
+        // Validações simples
+        if (atk < 0 || atk >= qtd || def < 0 || def >= qtd) {
+            printf("Territorio invalido!\n");
+        } else if (atk == def) {
+            printf("Atacante e defensor nao podem ser o mesmo territorio.\n");
+        } else {
+            simularAtaque(territorios, atk, def);
+        }
+
+        printf("\nDeseja simular nova batalha? (s/n): ");
+        scanf("%c", &continuar);
+        getchar();
+    }
+
+    printf("\n===== MAPA FINAL =====\n");
+    mostrarMapa(territorios, qtd);
+
+    free(territorios);
+    return 0;
+}
