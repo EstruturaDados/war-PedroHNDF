@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define TOTAL_TERRITORIOS 5
+
+// Estrutura dos territórios
+typedef struct {
+    char nome[30];
+    char corExercito[20];
+    int tropas;
+    int conquistado; // 0 = não, 1 = sim
+} Territorio;
+
+// Protótipos das funções
+void inicializarTerritorios(Territorio territorios[]);
+void mostrarMapa(const Territorio territorios[]);
+void atacar(Territorio territorios[]);
+void verificarMissao(const char *missao, const Territorio territorios[]);
+int vitoria(const char *missao, const Territorio territorios[]);
+
+int main() {
+    Territorio territorios[TOTAL_TERRITORIOS];
+    char missao[50];
+    int opcao;
+    srand(time(NULL));
+
+    // Inicializa territórios
+    inicializarTerritorios(territorios);
+
+    // Define missão aleatória
+    if (rand() % 2 == 0)
+        strcpy(missao, "Destruir o exercito Verde");
+    else
+        strcpy(missao, "Conquistar 3 territorios");
+
+    printf("\n===== Bem-vindo ao WAR - Nivel Mestre =====\n");
+    printf("Sua missao: %s\n\n", missao);
+
+    // Loop principal do jogo
+    do {
+        printf("\n--- MENU PRINCIPAL ---\n");
+        printf("1 - Atacar\n");
+        printf("2 - Verificar Missao\n");
+        printf("0 - Sair\n");
+        printf("Escolha: ");
+        scanf("%d", &opcao);
+        getchar(); // limpa o buffer
+
+        switch (opcao) {
+            case 1:
+                atacar(territorios);
+                break;
+            case 2:
+                verificarMissao(missao, territorios);
+                break;
+            case 0:
+                printf("Saindo do jogo...\n");
+                break;
+            default:
+                printf("Opcao invalida!\n");
+        }
+
+        if (vitoria(missao, territorios)) {
+            printf("\n🎉 Parabens! Voce completou sua missao!\n");
+            break;
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
+
+// ---------------------- FUNÇÕES ----------------------
+
+void inicializarTerritorios(Territorio territorios[]) {
+    const char *nomes[] = {"Brasil", "Argentina", "Chile", "Mexico", "Canada"};
+    const char *cores[] = {"Vermelho", "Verde", "Azul", "Amarelo", "Roxo"};
+
+    for (int i = 0; i < TOTAL_TERRITORIOS; i++) {
+        strcpy(territorios[i].nome, nomes[i]);
+        strcpy(territorios[i].corExercito, cores[i]);
+        territorios[i].tropas = rand() % 10 + 1; // entre 1 e 10 tropas
+        territorios[i].conquistado = 0;
+    }
+
+    printf("Territorios inicializados automaticamente!\n");
+    mostrarMapa(territorios);
+}
+
+void mostrarMapa(const Territorio territorios[]) {
+    printf("\n===== MAPA ATUAL =====\n");
+    for (int i = 0; i < TOTAL_TERRITORIOS; i++) {
+        printf("%d. %-10s | Exército: %-8s | Tropas: %d | Conquistado: %s\n",
+               i + 1, territorios[i].nome, territorios[i].corExercito,
+               territorios[i].tropas, territorios[i].conquistado ? "Sim" : "Não");
+    }
+}
+
+void atacar(Territorio territorios[]) {
+    int alvo;
+    mostrarMapa(territorios);
+    printf("\nEscolha o número do território para atacar: ");
+    scanf("%d", &alvo);
+    getchar();
+
+    if (alvo < 1 || alvo > TOTAL_TERRITORIOS) {
+        printf("Território inválido!\n");
+        return;
+    }
+
+    int forcaAtaque = rand() % 10 + 1;
+    printf("Você atacou %s com força %d!\n", territorios[alvo - 1].nome, forcaAtaque);
+
+    if (forcaAtaque > territorios[alvo - 1].tropas) {
+        territorios[alvo - 1].conquistado = 1;
+        strcpy(territorios[alvo - 1].corExercito, "Jogador");
+        printf("Você conquistou o território!\n");
+    } else {
+        printf("Ataque falhou! Tropas inimigas resistiram.\n");
+    }
+}
+
+void verificarMissao(const char *missao, const Territorio territorios[]) {
+    printf("\n===== Verificando Missão =====\n");
+    if (vitoria(missao, territorios))
+        printf("Missão completa!\n");
+    else
+        printf("Missão ainda não concluída.\n");
+}
+
+int vitoria(const char *missao, const Territorio territorios[]) {
+    if (strcmp(missao, "Destruir o exercito Verde") == 0) {
+        for (int i = 0; i < TOTAL_TERRITORIOS; i++) {
+            if (strcmp(territorios[i].corExercito, "Verde") == 0)
+                return 0; // ainda existe exército verde
+        }
+        return 1; // missão cumprida
+    } else if (strcmp(missao, "Conquistar 3 territorios") == 0) {
+        int conquistados = 0;
+        for (int i = 0; i < TOTAL_TERRITORIOS; i++) {
+            if (territorios[i].conquistado)
+                conquistados++;
+        }
+        return conquistados >= 3;
+    }
+
+    return 0;
+}
